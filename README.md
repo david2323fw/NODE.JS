@@ -37,11 +37,15 @@ Copiar código
 npm start
 El servidor se ejecutará en el puerto definido en .env (por defecto es el puerto 3000).
 
-Rutas disponibles
-Usuarios
-POST /users/register: Registra un nuevo usuario.
+1. Registro de Usuario (POST /users/register)
+Descripción: Esta ruta permite registrar un nuevo usuario en el sistema. Los usuarios deben proporcionar su nombre, correo electrónico, contraseña y el rol que desean tener (por ejemplo, usuario o admin).
 
-Body:
+Método HTTP: POST
+
+Ruta: /users/register
+
+Cuerpo de la solicitud (Body): Aquí proporcionas la información del usuario en formato JSON.
+
 json
 Copiar código
 {
@@ -50,22 +54,50 @@ Copiar código
   "password": "password123",
   "rol": "usuario"
 }
-POST /users/login: Inicia sesión y devuelve un token JWT.
+nombre: El nombre del usuario.
+email: El correo electrónico único del usuario.
+password: La contraseña que se utilizará para autenticar al usuario.
+rol: El rol del usuario, puede ser usuario o admin. Los administradores tienen permisos especiales.
+Respuesta esperada: Si el registro es exitoso, el servidor devolverá una respuesta que indica que el usuario fue creado correctamente. Si hay un error (por ejemplo, si el correo ya existe), se devolverá un mensaje de error.
 
-Body:
+2. Inicio de Sesión (POST /users/login)
+Descripción: Esta ruta permite que los usuarios se autentiquen proporcionando su correo electrónico y contraseña. Si las credenciales son correctas, el servidor generará un token JWT que se utilizará para autenticar futuras solicitudes.
+
+Método HTTP: POST
+
+Ruta: /users/login
+
+Cuerpo de la solicitud (Body): Aquí se proporcionan las credenciales del usuario para la autenticación.
+
 json
 Copiar código
 {
   "email": "juan@example.com",
   "password": "password123"
 }
-Productos
-GET /productos: Obtiene todos los productos (puede filtrar por categoría).
+email: El correo electrónico del usuario registrado.
+password: La contraseña del usuario.
+Respuesta esperada: Si las credenciales son correctas, se devolverá un token JWT. Este token debe ser utilizado en las solicitudes subsiguientes para acceder a las rutas protegidas.
 
-Query: ?categoria=<nombre_de_categoria>
-POST /productos: Agrega un nuevo producto (requiere autenticación de administrador).
+Ejemplo de respuesta con token:
 
-Body:
+json
+Copiar código
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYjcwZ2FhZTJlMGVmMjAxYjQ5M2FkYzAiLCJyb2wiOiJ1c3VhcmlvIn0.ZYZ8VG6gyghdJ1LTVhBC9V-kAqERgT5PbwGcUNhE7MQ"
+}
+3. Gestión de Productos (Solo para Administradores)
+Estas rutas son exclusivas para administradores y permiten agregar, modificar y eliminar productos.
+
+Agregar un Producto (POST /productos)
+Descripción: Permite agregar un nuevo producto al inventario del sistema. Esta ruta solo está disponible para administradores.
+
+Método HTTP: POST
+
+Ruta: /productos
+
+Cuerpo de la solicitud (Body): Aquí debes proporcionar los detalles del producto que deseas agregar:
+
 json
 Copiar código
 {
@@ -74,9 +106,29 @@ Copiar código
   "precio": 100,
   "stock": 50
 }
-PUT /productos/:id: Modifica un producto por su ID (requiere autenticación de administrador).
+nombre: Nombre del producto.
+categoria: Categoría del producto (por ejemplo, Electrónica, Ropa).
+precio: El precio del producto.
+stock: La cantidad de unidades del producto en inventario.
+Encabezado (Header):
+El administrador debe proporcionar un token JWT en el encabezado de autorización para autenticar la solicitud:
 
-Body:
+json
+Copiar código
+{
+  "Authorization": "Bearer <JWT_TOKEN>"
+}
+Respuesta esperada: Si el producto se agrega correctamente, el servidor responderá con un mensaje de éxito y el producto agregado.
+
+Modificar un Producto (PUT /productos/:id)
+Descripción: Permite modificar los detalles de un producto existente utilizando su ID.
+
+Método HTTP: PUT
+
+Ruta: /productos/:id (Reemplaza :id con el ID del producto a modificar).
+
+Cuerpo de la solicitud (Body): Debes enviar los detalles que deseas actualizar. Por ejemplo:
+
 json
 Copiar código
 {
@@ -85,11 +137,98 @@ Copiar código
   "precio": 120,
   "stock": 40
 }
-DELETE /productos/:id: Elimina un producto por su ID (requiere autenticación de administrador).
+nombre: Nuevo nombre del producto.
+categoria: Nueva categoría.
+precio: Nuevo precio.
+stock: Nueva cantidad en inventario.
+Encabezado (Header):
+Como en la solicitud de agregar un producto, el administrador debe incluir su token JWT para poder modificar el producto.
 
-Autenticación
-Para acceder a las rutas de productos, se requiere autenticación JWT. Asegúrate de enviar el token JWT en el encabezado Authorization de tus solicitudes, en formato Bearer <token>.
-Estructura del proyecto
+Respuesta esperada: El servidor devolverá el producto actualizado si la modificación es exitosa.
+
+Eliminar un Producto (DELETE /productos/:id)
+Descripción: Permite eliminar un producto del inventario usando su ID.
+
+Método HTTP: DELETE
+
+Ruta: /productos/:id (Reemplaza :id con el ID del producto a eliminar).
+
+Encabezado (Header):
+El administrador debe proporcionar un token JWT.
+
+Respuesta esperada: Si el producto se elimina correctamente, el servidor devolverá un mensaje de éxito.
+
+4. Consulta de Productos (Accesible para Todos los Usuarios)
+Estas rutas permiten consultar productos, y son accesibles tanto para usuarios normales como para administradores.
+
+Consultar Todos los Productos (GET /productos)
+Descripción: Devuelve todos los productos disponibles en el sistema.
+
+Método HTTP: GET
+
+Ruta: /productos
+
+Encabezado (Header):
+Si es necesario, puedes incluir el token JWT para autenticación. Sin embargo, generalmente esta ruta no requiere autenticación para usuarios normales.
+
+Respuesta esperada: Una lista de productos en formato JSON, por ejemplo:
+
+json
+Copiar código
+{
+  "productos": [
+    {
+      "nombre": "Producto 1",
+      "categoria": "Electrónica",
+      "precio": 100,
+      "stock": 50
+    },
+    {
+      "nombre": "Producto 2",
+      "categoria": "Ropa",
+      "precio": 50,
+      "stock": 100
+    }
+  ]
+}
+Consultar Productos por Categoría (GET /productos?categoria=<categoria>)
+Descripción: Permite filtrar los productos según su categoría. Por ejemplo, puedes consultar todos los productos de la categoría Electrónica.
+
+Método HTTP: GET
+
+Ruta: /productos?categoria=Electrónica
+
+Encabezado (Header):
+Puedes enviar el token JWT si la autenticación es requerida, pero generalmente no se necesita para consultar productos.
+
+Respuesta esperada: El servidor devolverá los productos que pertenecen a la categoría solicitada.
+
+Ejemplo de respuesta:
+
+json
+Copiar código
+{
+  "productos": [
+    {
+      "nombre": "Laptop",
+      "categoria": "Electrónica",
+      "precio": 1500,
+      "stock": 20
+    }
+  ]
+}
+Resumen de Rutas
+Usuarios:
+
+POST /users/register: Registrar un nuevo usuario.
+POST /users/login: Iniciar sesión y obtener un token JWT.
+Productos:
+
+GET /productos: Obtener todos los productos.
+GET /productos?categoria=<categoria>: Filtrar productos por categoría.
+POST /productos: Agregar un producto (solo para administradores).
+PUT /productos/:id: Modificar un producto (solo para administradores).
+DELETE /productos/:id: Eliminar un producto (solo para administradores).
 
 
 /config
